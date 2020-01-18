@@ -23,10 +23,9 @@ def captura_valor(link):
     sopa = bs4.BeautifulSoup(res.text, 'html.parser')
     sopa_desc = sopa.select('.content-head__subtitle')
 
+    valor_dic['link'] = urls[0]
     if sopa_desc:
         valor_dic['desc'] = sopa_desc[0].getText()
-    valor_dic['link'] = urls[0]
-
 
     return valor_dic
 
@@ -52,7 +51,6 @@ def formata(noticias, portal):
     return outstring
 
 def busca(portal, seletores):
-    link_supremo = 'http://portal.stf.jus.br'
     res = requests.get(portal['link'])
     res.raise_for_status()
 
@@ -74,7 +72,7 @@ def busca(portal, seletores):
             dicionario['desc'].append(valor_dic['desc'].replace('\n',''))
 
         elif portal['nome'] == 'Supremo Tribunal Federal':
-            dicionario['link'].append(link_supremo + sopa_link[i].get('href'))
+            dicionario['link'].append('http://portal.stf.jus.br' + sopa_link[i].get('href'))
             dicionario['desc'].append(sopa_desc[i].getText().replace('\n',''))
 
         elif portal['nome'] == 'Jota':
@@ -105,5 +103,3 @@ print(outstring)
 """
 ezgmail.send('mendes.lnr@gmail.com','Clipping Tributário',outstring)
 ezgmail.send('barreto.isabelaa@gmail.com','Clipping Tributário',outstring)
-
-
