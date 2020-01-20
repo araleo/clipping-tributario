@@ -5,3 +5,4 @@ clipping de notícias tributárias capturadas a partir de webscraping dos seguin
 STF
 JOTA
 VALOR
+SACHA CALMON
