@@ -115,7 +115,7 @@ def busca(portal, seletores):
 
         elif portal['nome'] == 'Supremo Tribunal Federal':
             dicionario['titulo'].append(titulo_materia)
-            dicionario['link'].append('http://portal.stf.jus.br' + titulo_materia)
+            dicionario['link'].append('http://portal.stf.jus.br' + link_materia)
             dicionario['desc'].append(desc_materia)
 
         elif portal['nome'] == 'Jota':
