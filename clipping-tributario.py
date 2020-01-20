@@ -69,7 +69,7 @@ def busca_sacha(portal, seletores):
 
     return dicionario
 
-def captura_valor(link):
+def busca_valor(link):
     valor_dic = {'link': '', 'desc': ''}
 
     res = requests.get(link)
@@ -109,7 +109,7 @@ def busca(portal, seletores):
             lista_titulos_valor.append(titulo_materia)
             dicionario['titulo'].append(titulo_materia)
             link_bruto = 'https:' + link_materia
-            valor_dic = captura_valor(link_bruto)
+            valor_dic = busca_valor(link_bruto)
             dicionario['link'].append(valor_dic['link'])
             dicionario['desc'].append(valor_dic['desc'].replace('\n',''))
 
