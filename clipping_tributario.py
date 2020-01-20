@@ -1,8 +1,11 @@
 from datetime import date
 import bs4, ezgmail, os, re, requests
 
-valor_dados = {'nome': 'Valor Econômico', 'link': 'https://valor.globo.com/busca/?q=tributos&order=recent&from=now-1d'}
+valor_dados_1 = {'nome': 'Valor Econômico', 'link': 'https://valor.globo.com/busca/?q=tributo&order=recent&page=1&from=now-1d'}
+valor_dados_2 = {'nome': 'Valor Econômico', 'link': 'https://valor.globo.com/busca/?q=tributos&order=recent&from=now-1d'}
+valor_dados_3 = {'nome': 'Valor Econômico', 'link': 'https://valor.globo.com/busca/?q=tributario&order=recent&from=now-1d&page=1'}
 valor_seletores = {'titulo': '.widget--info__title', 'desc': '.widget--info__description', 'link': '.widget--info__text-container a'}
+lista_titulos_valor = []
 
 stf_dados = {'nome': 'Supremo Tribunal Federal', 'link': 'http://portal.stf.jus.br/listagem/listarNoticias.asp?dataDe=' + date.today().strftime('%d%m%Y') + '&dataA=&ori=1'}
 stf_seletores = {'titulo': '#noticias a', 'desc': '.noticia-resumo', 'link': '#noticias a'}
@@ -63,21 +66,27 @@ def busca(portal, seletores):
 
     for i in range(len(sopa_titulo)):
 
-        dicionario['titulo'].append(sopa_titulo[i].getText().strip())
+        titulo_materia = sopa_titulo[i].getText().strip()
+        link_materia = sopa_link[i].get('href')
+        desc_materia = sopa_desc[i].getText().replace('\n','')
 
-        if portal['nome'] == 'Valor Econômico':
-            link_bruto = 'https:' + sopa_link[i].get('href')
+        if portal['nome'] == 'Valor Econômico' and titulo_materia not in lista_titulos_valor:
+            lista_titulos_valor.append(titulo_materia)
+            dicionario['titulo'].append(titulo_materia)
+            link_bruto = 'https:' + link_materia
             valor_dic = captura_valor(link_bruto)
             dicionario['link'].append(valor_dic['link'])
             dicionario['desc'].append(valor_dic['desc'].replace('\n',''))
 
         elif portal['nome'] == 'Supremo Tribunal Federal':
-            dicionario['link'].append('http://portal.stf.jus.br' + sopa_link[i].get('href'))
-            dicionario['desc'].append(sopa_desc[i].getText().replace('\n',''))
+            dicionario['titulo'].append(titulo_materia)
+            dicionario['link'].append('http://portal.stf.jus.br' + titulo_materia)
+            dicionario['desc'].append(desc_materia)
 
         elif portal['nome'] == 'Jota':
-            dicionario['link'].append(sopa_link[i].get('href'))
-            dicionario['desc'].append(sopa_desc[i].getText().replace('\n',''))
+            dicionario['titulo'].append(titulo_materia)
+            dicionario['link'].append(link_materia)
+            dicionario['desc'].append(desc_materia)
 
     dicionario['outstring'] = formata(dicionario, portal)
 
@@ -90,16 +99,20 @@ def control(lista):
 
     return noticias_string
 
-noticias_valor = busca(valor_dados, valor_seletores)
+noticias_valor = busca(valor_dados_1, valor_seletores)
 noticias_stf = busca(stf_dados, stf_seletores)
+noticias_valor = {**busca(valor_dados_2, valor_seletores), **noticias_valor}
 noticias_jota = busca(jota_dados, jota_seletores)
+noticias_valor = {**busca(valor_dados_3, valor_seletores), **noticias_valor}
 
 lista_noticias = [noticias_valor, noticias_stf, noticias_jota]
 
 outstring = control(lista_noticias)
 
-"""
+print(lista_titulos_valor)
 print(outstring)
+
 """
 ezgmail.send('mendes.lnr@gmail.com','Clipping Tributário',outstring)
 ezgmail.send('barreto.isabelaa@gmail.com','Clipping Tributário',outstring)
+"""
