@@ -1,6 +1,7 @@
 from datetime import date
 import bs4, ezgmail, os, re, requests
 
+
 valor_dados_1 = {'nome': 'Valor Econômico', 'link': 'https://valor.globo.com/busca/?q=tributo&order=recent&page=1&from=now-1d'}
 valor_dados_2 = {'nome': 'Valor Econômico', 'link': 'https://valor.globo.com/busca/?q=tributos&order=recent&from=now-1d'}
 valor_dados_3 = {'nome': 'Valor Econômico', 'link': 'https://valor.globo.com/busca/?q=tributario&order=recent&from=now-1d&page=1'}
@@ -15,6 +16,7 @@ jota_seletores = {'titulo': '.jota-cover__title a', 'desc': '.jota-cover__lead',
 
 sacha_dados = {'nome': 'Informativo Sacha Calmon', 'link': 'https://sachacalmon.com.br/categoria/resenha-tributaria'}
 sacha_seletores = {'titulo': '.artigo-feed-archive h2', 'link': '.artigo-feed-archive a'}
+
 
 def formata(noticias, portal):
     outstring = ''
@@ -36,6 +38,7 @@ def formata(noticias, portal):
 """
 
     return outstring
+
 
 def busca_sacha(portal, seletores):
     dicionario = {'titulo': [], 'desc': [], 'link': [], 'outstring': ''}
@@ -69,26 +72,10 @@ def busca_sacha(portal, seletores):
 
     return dicionario
 
-def busca_valor(link):
-    valor_dic = {'link': '', 'desc': ''}
 
-    res = requests.get(link)
-    res.raise_for_status()
-    sopa = bs4.BeautifulSoup(res.text, 'html.parser')
-    urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', str(sopa))
+def busca_jota(portal, seletores):
+    dicionario = {'titulo': [], 'desc': [], 'link': [], 'outstring': ''}
 
-    res = requests.get(urls[0])
-    res.raise_for_status()
-    sopa = bs4.BeautifulSoup(res.text, 'html.parser')
-    sopa_desc = sopa.select('.content-head__subtitle')
-
-    valor_dic['link'] = urls[0]
-    if sopa_desc:
-        valor_dic['desc'] = sopa_desc[0].getText()
-
-    return valor_dic
-
-def busca(portal, seletores):
     res = requests.get(portal['link'])
     res.raise_for_status()
 
@@ -97,35 +84,90 @@ def busca(portal, seletores):
     sopa_desc = sopa.select(seletores['desc'])
     sopa_link = sopa.select(seletores['link'])
 
-    dicionario = {'titulo': [], 'desc': [], 'link': [], 'outstring': ''}
-
     for i in range(len(sopa_titulo)):
+        res = requests.get(sopa_link[i].get('href'))
+        res.raise_for_status()
 
-        titulo_materia = sopa_titulo[i].getText().strip()
-        link_materia = sopa_link[i].get('href')
-        desc_materia = sopa_desc[i].getText().replace('\n','')
+        sopa = bs4.BeautifulSoup(res.text, 'html.parser')
+        sopa_data = sopa.select('.jota-article__date-created')
+        dia_noticia = sopa_data[0].getText().strip()[:10]
 
-        if portal['nome'] == 'Valor Econômico' and titulo_materia not in lista_titulos_valor:
-            lista_titulos_valor.append(titulo_materia)
-            dicionario['titulo'].append(titulo_materia)
-            link_bruto = 'https:' + link_materia
-            valor_dic = busca_valor(link_bruto)
-            dicionario['link'].append(valor_dic['link'])
-            dicionario['desc'].append(valor_dic['desc'].replace('\n',''))
-
-        elif portal['nome'] == 'Supremo Tribunal Federal':
-            dicionario['titulo'].append(titulo_materia)
-            dicionario['link'].append('http://portal.stf.jus.br' + link_materia)
-            dicionario['desc'].append(desc_materia)
-
-        elif portal['nome'] == 'Jota':
-            dicionario['titulo'].append(titulo_materia)
-            dicionario['link'].append(link_materia)
-            dicionario['desc'].append(desc_materia)
+        if dia_noticia == date.today().strftime('%d/%m/%Y'):
+            dicionario['titulo'].append(sopa_titulo[i].getText().strip())
+            dicionario['desc'].append(sopa_desc[i].getText())
+            dicionario['link'].append(sopa_link[i].get('href'))
 
     dicionario['outstring'] = formata(dicionario, portal)
 
     return dicionario
+
+
+def busca_valor(portal, seletores):
+    dicionario = {'titulo': [], 'desc': [], 'link': [], 'outstring': ''}
+    lista_titulos = []
+
+    res = requests.get(portal['link'])
+    res.raise_for_status()
+
+    sopa = bs4.BeautifulSoup(res.text, 'html.parser')
+    sopa_titulo = sopa.select(seletores['titulo'])
+    sopa_desc = sopa.select(seletores['desc'])
+    sopa_link = sopa.select(seletores['link'])
+
+
+    for i in range(len(sopa_titulo)):
+        titulo_materia = sopa_titulo[i].getText().strip()
+        link_materia = sopa_link[i].get('href')
+        desc_materia = sopa_desc[i].getText().replace('\n','')
+
+        if titulo_materia not in lista_titulos:
+            lista_titulos.append(titulo_materia)
+            dicionario['titulo'].append(titulo_materia)
+            link_bruto = 'https:' + link_materia
+
+            res = requests.get(link_bruto)
+            res.raise_for_status()
+            sopa = bs4.BeautifulSoup(res.text, 'html.parser')
+            urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', str(sopa))
+
+            res = requests.get(urls[0])
+            res.raise_for_status()
+            sopa = bs4.BeautifulSoup(res.text, 'html.parser')
+            nova_desc = sopa.select('.content-head__subtitle')
+
+            dicionario['link'].append(urls[0])
+            if nova_desc:
+                dicionario['desc'].append(nova_desc[0].getText().replace('\n',''))
+
+            dicionario['outstring'] = formata(dicionario, portal)
+
+    return dicionario
+
+
+def busca_supremo(portal, seletores):
+    dicionario = {'titulo': [], 'desc': [], 'link': [], 'outstring': ''}
+
+    res = requests.get(portal['link'])
+    res.raise_for_status()
+
+    sopa = bs4.BeautifulSoup(res.text, 'html.parser')
+    sopa_titulo = sopa.select(seletores['titulo'])
+    sopa_desc = sopa.select(seletores['desc'])
+    sopa_link = sopa.select(seletores['link'])
+
+    for i in range(len(sopa_titulo)):
+        titulo_materia = sopa_titulo[i].getText().strip()
+        link_materia = sopa_link[i].get('href')
+        desc_materia = sopa_desc[i].getText().replace('\n','')
+
+        dicionario['titulo'].append(titulo_materia)
+        dicionario['link'].append('http://portal.stf.jus.br' + link_materia)
+        dicionario['desc'].append(desc_materia)
+
+    dicionario['outstring'] = formata(dicionario, portal)
+
+    return dicionario
+
 
 def control(lista):
     noticias_string = f"Notícias tributárias de {date.today().strftime('%d/%m/%Y')}:" + '\n\n'
@@ -134,15 +176,15 @@ def control(lista):
 
     return noticias_string
 
+
 noticias_sacha = busca_sacha(sacha_dados, sacha_seletores)
-noticias_valor = busca(valor_dados_1, valor_seletores)
-noticias_valor = {**busca(valor_dados_2, valor_seletores), **noticias_valor}
-noticias_valor = {**busca(valor_dados_3, valor_seletores), **noticias_valor}
-noticias_stf = busca(stf_dados, stf_seletores)
-noticias_jota = busca(jota_dados, jota_seletores)
+noticias_valor = busca_valor(valor_dados_1, valor_seletores)
+noticias_valor = {**busca_valor(valor_dados_2, valor_seletores), **noticias_valor}
+noticias_valor = {**busca_valor(valor_dados_3, valor_seletores), **noticias_valor}
+noticias_jota = busca_jota(jota_dados, jota_seletores)
+noticias_stf = busca_supremo(stf_dados, stf_seletores)
 
-
-lista_noticias = [noticias_sacha, noticias_valor, noticias_stf, noticias_jota]
+lista_noticias = [noticias_sacha, noticias_valor, noticias_jota, noticias_stf]
 
 outstring = control(lista_noticias)
 
