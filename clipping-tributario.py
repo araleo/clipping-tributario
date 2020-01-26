@@ -159,7 +159,6 @@ def busca_supremo(portal, seletores):
         titulo_materia = sopa_titulo[i].getText().strip()
         link_materia = sopa_link[i].get('href')
         desc_materia = sopa_desc[i].getText().replace('\n','')
-
         dicionario['titulo'].append(titulo_materia)
         dicionario['link'].append('http://portal.stf.jus.br' + link_materia)
         dicionario['desc'].append(desc_materia)
@@ -188,9 +187,8 @@ lista_noticias = [noticias_sacha, noticias_valor, noticias_jota, noticias_stf]
 
 outstring = control(lista_noticias)
 
+"""
 print(outstring)
-
 """
 ezgmail.send('mendes.lnr@gmail.com','Clipping Tributário',outstring)
 ezgmail.send('barreto.isabelaa@gmail.com','Clipping Tributário',outstring)
-"""
