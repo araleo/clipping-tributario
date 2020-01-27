@@ -100,7 +100,6 @@ def busca_jota(portal, seletores):
 
 def busca_valor(portal, seletores):
     dicionario = {'titulo': [], 'desc': [], 'link': [], 'outstring': ''}
-    lista_titulos = []
 
     res = requests.get(portal['link'])
     res.raise_for_status()
