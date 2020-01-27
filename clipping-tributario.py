@@ -22,21 +22,17 @@ def formata(noticias, portal):
     outstring = ''
     if noticias['titulo']:
         outstring += '\n' + portal['nome'] + '\n'
-        titulos = noticias['titulo']
-        descricoes = noticias['desc']
-        links = noticias['link']
-        for i in range(len(titulos)):
+        for titulo, desc, link in zip(noticias['titulo'], noticias['desc'], noticias['link']):
             outstring += f"""
 
-    {titulos[i]}
+    {titulo}
 
-            {descricoes[i]}
+            {desc}
 
-            {links[i]}
+            {link}
 
 
 """
-
     return outstring
 
 
@@ -84,8 +80,8 @@ def busca_jota(portal, seletores):
     sopa_desc = sopa.select(seletores['desc'])
     sopa_link = sopa.select(seletores['link'])
 
-    for i in range(len(sopa_titulo)):
-        res = requests.get(sopa_link[i].get('href'))
+    for titulo, desc, link in zip(sopa_titulo, sopa_desc, sopa_link):
+        res = requests.get(link.get('href'))
         res.raise_for_status()
 
         sopa = bs4.BeautifulSoup(res.text, 'html.parser')
@@ -93,9 +89,9 @@ def busca_jota(portal, seletores):
         dia_noticia = sopa_data[0].getText().strip()[:10]
 
         if dia_noticia == date.today().strftime('%d/%m/%Y'):
-            dicionario['titulo'].append(sopa_titulo[i].getText().strip())
-            dicionario['desc'].append(sopa_desc[i].getText())
-            dicionario['link'].append(sopa_link[i].get('href'))
+            dicionario['titulo'].append(titulo.getText().strip())
+            dicionario['desc'].append(desc.getText())
+            dicionario['link'].append(link.get('href'))
 
     dicionario['outstring'] = formata(dicionario, portal)
 
@@ -114,18 +110,16 @@ def busca_valor(portal, seletores):
     sopa_desc = sopa.select(seletores['desc'])
     sopa_link = sopa.select(seletores['link'])
 
+    for titulo, desc, link in zip(sopa_titulo, sopa_desc, sopa_link):
+        titulo = titulo.getText().strip()
+        desc = desc.getText().replace('\n','')
+        link = link.get('href')
 
-    for i in range(len(sopa_titulo)):
-        titulo_materia = sopa_titulo[i].getText().strip()
-        link_materia = sopa_link[i].get('href')
-        desc_materia = sopa_desc[i].getText().replace('\n','')
+        if titulo not in dicionario['titulo']:
+            dicionario['titulo'].append(titulo)
+            link = 'https:' + link
 
-        if titulo_materia not in lista_titulos:
-            lista_titulos.append(titulo_materia)
-            dicionario['titulo'].append(titulo_materia)
-            link_bruto = 'https:' + link_materia
-
-            res = requests.get(link_bruto)
+            res = requests.get(link)
             res.raise_for_status()
             sopa = bs4.BeautifulSoup(res.text, 'html.parser')
             urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', str(sopa))
@@ -138,6 +132,8 @@ def busca_valor(portal, seletores):
             dicionario['link'].append(urls[0])
             if nova_desc:
                 dicionario['desc'].append(nova_desc[0].getText().replace('\n',''))
+            else:
+                dicionario['desc'].append('')
 
             dicionario['outstring'] = formata(dicionario, portal)
 
@@ -155,13 +151,10 @@ def busca_supremo(portal, seletores):
     sopa_desc = sopa.select(seletores['desc'])
     sopa_link = sopa.select(seletores['link'])
 
-    for i in range(len(sopa_titulo)):
-        titulo_materia = sopa_titulo[i].getText().strip()
-        link_materia = sopa_link[i].get('href')
-        desc_materia = sopa_desc[i].getText().replace('\n','')
-        dicionario['titulo'].append(titulo_materia)
-        dicionario['link'].append('http://portal.stf.jus.br' + link_materia)
-        dicionario['desc'].append(desc_materia)
+    for titulo, desc, link in zip(sopa_titulo, sopa_desc, sopa_link):
+        dicionario['titulo'].append(titulo.getText().strip())
+        dicionario['link'].append('http://portal.stf.jus.br' + link.get('href'))
+        dicionario['desc'].append(desc.getText().replace('\n',''))
 
     dicionario['outstring'] = formata(dicionario, portal)
 
