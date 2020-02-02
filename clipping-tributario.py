@@ -169,6 +169,8 @@ def control(lista):
 
     if noticias == '':
         outstring += f'Hoje não capturamos nenhuma notícia relevante.'
+    else:
+        outstring += noticias
 
     """
     print(outstring)
