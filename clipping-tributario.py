@@ -173,7 +173,6 @@ def control(lista):
     print(outstring)
     """
     ezgmail.send('mendes.lnr@gmail.com','Clipping Tributário',outstring)
-    ezgmail.send('barreto.isabelaa@gmail.com','Clipping Tributário',outstring)
     """
 
 
