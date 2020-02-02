@@ -170,10 +170,10 @@ def control(lista):
     if noticias == '':
         outstring += f'Hoje não capturamos nenhuma notícia relevante.'
 
+    """
     print(outstring)
     """
     ezgmail.send('mendes.lnr@gmail.com','Clipping Tributário',outstring)
-    """
 
 
 noticias_sacha = busca_sacha(sacha_dados, sacha_seletores)
