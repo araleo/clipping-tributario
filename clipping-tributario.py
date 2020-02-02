@@ -1,21 +1,24 @@
 from datetime import date
+from datetime import timedelta
 import bs4, ezgmail, os, re, requests
 
+
+data_ontem = date.today() - timedelta(days=1)
 
 valor_dados_1 = {'nome': 'Valor Econômico', 'link': 'https://valor.globo.com/busca/?q=tributo&order=recent&page=1&from=now-1d'}
 valor_dados_2 = {'nome': 'Valor Econômico', 'link': 'https://valor.globo.com/busca/?q=tributos&order=recent&from=now-1d'}
 valor_dados_3 = {'nome': 'Valor Econômico', 'link': 'https://valor.globo.com/busca/?q=tributario&order=recent&from=now-1d&page=1'}
-valor_seletores = {'titulo': '.widget--info__title', 'desc': '.widget--info__description', 'link': '.widget--info__text-container a'}
+valor_seletores = {'titulo': '.widget--info__title', 'desc': '.widget--info__description', 'link': '.widget--info__text-container a', 'nova_desc': '.content-head__subtitle'}
 lista_titulos_valor = []
 
-stf_dados = {'nome': 'Supremo Tribunal Federal', 'link': 'http://portal.stf.jus.br/listagem/listarNoticias.asp?dataDe=' + date.today().strftime('%d%m%Y') + '&dataA=&ori=1'}
+stf_dados = {'nome': 'Supremo Tribunal Federal', 'link': 'http://portal.stf.jus.br/listagem/listarNoticias.asp?dataDe=' + data_ontem.strftime('%d%m%Y') + '&dataA=&ori=1'}
 stf_seletores = {'titulo': '#noticias a', 'desc': '.noticia-resumo', 'link': '#noticias a'}
 
 jota_dados = {'nome': 'Jota', 'link': 'https://www.jota.info/tributos-e-empresas/tributario'}
-jota_seletores = {'titulo': '.jota-cover__title a', 'desc': '.jota-cover__lead', 'link': '.jota-cover__title a'}
+jota_seletores = {'titulo': '.jota-cover__title a', 'desc': '.jota-cover__lead', 'link': '.jota-cover__title a', 'data': '.jota-article__date-created'}
 
 sacha_dados = {'nome': 'Informativo Sacha Calmon', 'link': 'https://sachacalmon.com.br/categoria/resenha-tributaria'}
-sacha_seletores = {'titulo': '.artigo-feed-archive h2', 'link': '.artigo-feed-archive a'}
+sacha_seletores = {'titulo': '.artigo-feed-archive h2', 'link': '.artigo-feed-archive a', 'data': '.data-artigo p'}
 
 
 def formata(noticias, portal):
@@ -53,13 +56,10 @@ def busca_sacha(portal, seletores):
     res.raise_for_status()
 
     sopa = bs4.BeautifulSoup(res.text, 'html.parser')
-    sopa_data = sopa.select('.data-artigo p')
+    sopa_data = sopa.select(seletores['data'])
 
     data_materia = sopa_data[0].getText()
-
-    hoje = date.today().strftime('%d/%m/%Y')
-
-    if data_materia == hoje:
+    if data_materia == data_ontem.strftime('%d/%m/%Y'):
         dicionario['titulo'].append('Novo Informativo')
         dicionario['desc'].append(titulo_materia)
         dicionario['link'].append(link_materia)
@@ -85,10 +85,10 @@ def busca_jota(portal, seletores):
         res.raise_for_status()
 
         sopa = bs4.BeautifulSoup(res.text, 'html.parser')
-        sopa_data = sopa.select('.jota-article__date-created')
-        dia_noticia = sopa_data[0].getText().strip()[:10]
+        sopa_data = sopa.select(seletores['data'])
 
-        if dia_noticia == date.today().strftime('%d/%m/%Y'):
+        dia_noticia = sopa_data[0].getText().strip()[:10]
+        if dia_noticia == data_ontem.strftime('%d/%m/%Y'):
             dicionario['titulo'].append(titulo.getText().strip())
             dicionario['desc'].append(desc.getText())
             dicionario['link'].append(link.get('href'))
@@ -126,7 +126,7 @@ def busca_valor(portal, seletores):
             res = requests.get(urls[0])
             res.raise_for_status()
             sopa = bs4.BeautifulSoup(res.text, 'html.parser')
-            nova_desc = sopa.select('.content-head__subtitle')
+            nova_desc = sopa.select(seletores['nova_desc'])
 
             dicionario['link'].append(urls[0])
             if nova_desc:
@@ -161,11 +161,20 @@ def busca_supremo(portal, seletores):
 
 
 def control(lista):
-    noticias_string = f"Notícias tributárias de {date.today().strftime('%d/%m/%Y')}:" + '\n\n'
-    for item in lista:
-        noticias_string += item['outstring']
+    outstring = f"Notícias tributárias - {date.today().strftime('%d/%m/%Y')}:" + '\n\n'
 
-    return noticias_string
+    noticias = ''
+    for item in lista:
+        noticias += item['outstring']
+
+    if noticias == '':
+        outstring += f'Hoje não capturamos nenhuma notícia relevante.'
+
+    print(outstring)
+    """
+    ezgmail.send('mendes.lnr@gmail.com','Clipping Tributário',outstring)
+    ezgmail.send('barreto.isabelaa@gmail.com','Clipping Tributário',outstring)
+    """
 
 
 noticias_sacha = busca_sacha(sacha_dados, sacha_seletores)
@@ -177,10 +186,4 @@ noticias_stf = busca_supremo(stf_dados, stf_seletores)
 
 lista_noticias = [noticias_sacha, noticias_valor, noticias_jota, noticias_stf]
 
-outstring = control(lista_noticias)
-
-"""
-print(outstring)
-"""
-ezgmail.send('mendes.lnr@gmail.com','Clipping Tributário',outstring)
-ezgmail.send('barreto.isabelaa@gmail.com','Clipping Tributário',outstring)
+control(lista_noticias)
