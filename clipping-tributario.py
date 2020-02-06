@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from datetime import date
 from datetime import timedelta
 import bs4, ezgmail, os, re, requests
@@ -176,7 +178,7 @@ def control(lista):
     print(outstring)
     """
     ezgmail.send('mendes.lnr@gmail.com','Clipping Tributário',outstring)
-
+    ezgmail.send('barreto.isabelaa@gmail.com','Clipping Tributário',outstring)
 
 noticias_sacha = busca_sacha(sacha_dados, sacha_seletores)
 noticias_valor = busca_valor(valor_dados_1, valor_seletores)
