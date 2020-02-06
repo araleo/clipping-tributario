@@ -158,6 +158,7 @@ def busca_supremo(portal, seletores):
     try:
         res = requests.get(portal['link'])
         res.raise_for_status()
+        res.encoding = 'unicode'
 
         sopa = bs4.BeautifulSoup(res.text, 'html.parser')
         sopa_titulo = sopa.select(seletores['titulo'])
@@ -189,13 +190,14 @@ def control(lista):
     else:
         outstring += noticias
 
-    #print(outstring)
-    ezgmail.send('mendes.lnr@gmail.com', 'Clipping Tributário', outstring)
+    print(outstring)
+    #ezgmail.send('mendes.lnr@gmail.com', 'Clipping Tributário', outstring)
 
 
     if lista_erros:
         outerros = '\n'.join(lista_erros)
-        ezgmail.send('mendes.lnr@gmail.com', 'Erros Clipping', outerros)
+        print(outerros)
+        #ezgmail.send('mendes.lnr@gmail.com', 'Erros Clipping', outerros)
 
 
 noticias_sacha = busca_sacha(sacha_dados, sacha_seletores)
