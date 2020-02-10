@@ -132,7 +132,6 @@ def busca_valor(portal, seletores):
             if titulo not in dicionario['titulo']:
                 dicionario['titulo'].append(titulo)
                 link = 'https:' + link
-
                 try:
                     res = requests.get(link)
                     res.raise_for_status()
@@ -141,7 +140,6 @@ def busca_valor(portal, seletores):
                 else:
                     sopa = bs4.BeautifulSoup(res.text, 'html.parser')
                     urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', str(sopa))
-
                     try:
                         res = requests.get(urls[0])
                         res.raise_for_status()
@@ -182,7 +180,6 @@ def busca_supremo(portal, seletores):
             dicionario['desc'].append(desc.getText().replace('\n',''))
 
         dicionario['outstring'] = formata(dicionario, portal)
-
 
     return dicionario
 
