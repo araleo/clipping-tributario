@@ -4,6 +4,7 @@ from datetime import date, timedelta
 import bs4, ezgmail, os, re, requests
 
 
+tupla_excepts = (requests.exceptions.ReadTimeout, requests.exceptions.SSLError, requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError, requests.exceptions.TooManyRedirects)
 lista_erros = []
 data_ontem = date.today() - timedelta(days=1)
 
@@ -47,9 +48,8 @@ def busca_sacha(portal, seletores):
     try:
         res = requests.get(portal['link'])
         res.raise_for_status()
-    except (requests.exceptions.ReadTimeout, requests.exceptions.SSLError,
-    requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as err:
-        lista_erros.append(err)
+    except tupla_excepts as err:
+        lista_erros.append(str(err))
     else:
         sopa = bs4.BeautifulSoup(res.text, 'html.parser')
         sopa_titulo = sopa.select(seletores['titulo'])
@@ -60,9 +60,8 @@ def busca_sacha(portal, seletores):
         try:
             res = requests.get(link_materia)
             res.raise_for_status()
-        except (requests.exceptions.ReadTimeout, requests.exceptions.SSLError,
-        requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as err:
-            lista_erros.append(err)
+        except tupla_excepts as err:
+            lista_erros.append(str(err))
         else:
             sopa = bs4.BeautifulSoup(res.text, 'html.parser')
             sopa_data = sopa.select(seletores['data'])
@@ -84,9 +83,8 @@ def busca_jota(portal, seletores):
     try:
         res = requests.get(portal['link'])
         res.raise_for_status()
-    except (requests.exceptions.ReadTimeout, requests.exceptions.SSLError,
-    requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as err:
-        lista_erros.append(err)
+    except tupla_excepts as err:
+        lista_erros.append(str(err))
     else:
         sopa = bs4.BeautifulSoup(res.text, 'html.parser')
         sopa_titulo = sopa.select(seletores['titulo'])
@@ -97,9 +95,8 @@ def busca_jota(portal, seletores):
             try:
                 res = requests.get(link.get('href'))
                 res.raise_for_status()
-            except (requests.exceptions.ReadTimeout, requests.exceptions.SSLError,
-            requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as err:
-                lista_erros.append(err)
+            except tupla_excepts as err:
+                lista_erros.append(str(err))
             else:
                 sopa = bs4.BeautifulSoup(res.text, 'html.parser')
                 sopa_data = sopa.select(seletores['data'])
@@ -119,9 +116,8 @@ def busca_valor(portal, seletores):
     try:
         res = requests.get(portal['link'])
         res.raise_for_status()
-    except (requests.exceptions.ReadTimeout, requests.exceptions.SSLError,
-    requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as err:
-        lista_erros.append(err)
+    except tupla_excepts as err:
+        lista_erros.append(str(err))
     else:
         sopa = bs4.BeautifulSoup(res.text, 'html.parser')
         sopa_titulo = sopa.select(seletores['titulo'])
@@ -140,9 +136,8 @@ def busca_valor(portal, seletores):
                 try:
                     res = requests.get(link)
                     res.raise_for_status()
-                except (requests.exceptions.ReadTimeout, requests.exceptions.SSLError,
-                requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as err:
-                    lista_erros.append(err)
+                except tupla_excepts as err:
+                    lista_erros.append(str(err))
                 else:
                     sopa = bs4.BeautifulSoup(res.text, 'html.parser')
                     urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', str(sopa))
@@ -150,9 +145,8 @@ def busca_valor(portal, seletores):
                     try:
                         res = requests.get(urls[0])
                         res.raise_for_status()
-                    except (requests.exceptions.ReadTimeout, requests.exceptions.SSLError,
-                    requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as err:
-                        lista_erros.append(err)
+                    except tupla_excepts as err:
+                        lista_erros.append(str(err))
                     else:
                         sopa = bs4.BeautifulSoup(res.text, 'html.parser')
                         nova_desc = sopa.select(seletores['nova_desc'])
@@ -171,11 +165,10 @@ def busca_supremo(portal, seletores):
     dicionario = {'titulo': [], 'desc': [], 'link': [], 'outstring': ''}
 
     try:
-        res = requests.get(portal['link'])
+        res = requests.get(portal['link'], timeout=10)
         res.raise_for_status()
         res.encoding = 'unicode'
-    except (requests.exceptions.ReadTimeout, requests.exceptions.SSLError,
-    requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as err:
+    except tupla_excepts as err:
         lista_erros.append(str(err))
     else:
         sopa = bs4.BeautifulSoup(res.text, 'html.parser')
@@ -206,9 +199,9 @@ def control(lista):
     else:
         outstring += noticias
 
-    #print(outstring)
-    ezgmail.send('mendes.lnr@gmail.com', 'Clipping Tributário', outstring)
-    ezgmail.send('barreto.isabelaa@gmail.com', 'Clipping Tributário', outstring)
+    print(outstring)
+    # ezgmail.send('mendes.lnr@gmail.com', 'Clipping Tributário', outstring)
+    # ezgmail.send('barreto.isabelaa@gmail.com', 'Clipping Tributário', outstring)
 
     if lista_erros:
         outerros = '\n'.join(lista_erros)
