@@ -226,7 +226,6 @@ def control(lista):
     arquivo_html(outstring)
     #print(outstring)
     # ezgmail.send('mendes.lnr@gmail.com', 'Clipping Tributário', outstring)
-    # ezgmail.send('barreto.isabelaa@gmail.com', 'Clipping Tributário', outstring)
 
     if lista_erros:
         outerros = '\n'.join(lista_erros)
