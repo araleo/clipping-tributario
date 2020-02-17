@@ -24,7 +24,31 @@ sacha_dados = {'nome': 'Informativo Sacha Calmon', 'link': 'https://sachacalmon.
 sacha_seletores = {'titulo': '.artigo-feed-archive h2', 'link': '.artigo-feed-archive a', 'data': '.data-artigo p'}
 
 
-def formata(noticias, portal):
+def arquivo_html(texto):
+    saida = open('clipping.html', 'w')
+    outstring = ''
+    with open('index.html', 'r') as f:
+        for i, linha in enumerate(f):
+            if i == 11:
+                linha = texto
+            outstring += linha
+    saida.write(outstring)
+    saida.close()
+
+
+def formata_html(noticias, portal):
+    outstring = ''
+    if noticias['titulo']:
+        outstring += f"<h2>{portal['nome']}</h2>"
+        for titulo, desc, link in zip(noticias['titulo'], noticias['desc'], noticias['link']):
+            outstring += f"""
+<h3>{titulo}</h3>
+<p>{desc}</p>
+<a href="{link}">{link}</a>"""
+    return outstring
+
+
+def formata_texto(noticias, portal):
     outstring = ''
     if noticias['titulo']:
         outstring += '\n' + portal['nome'] + '\n'
@@ -72,7 +96,7 @@ def busca_sacha(portal, seletores):
                 dicionario['desc'].append(titulo_materia)
                 dicionario['link'].append(link_materia)
 
-            dicionario['outstring'] = formata(dicionario, portal)
+            dicionario['outstring'] = formata_html(dicionario, portal)
 
     return dicionario
 
@@ -105,7 +129,7 @@ def busca_jota(portal, seletores):
                     dicionario['titulo'].append(titulo.getText().strip())
                     dicionario['desc'].append(desc.getText())
                     dicionario['link'].append(link.get('href'))
-                    dicionario['outstring'] = formata(dicionario, portal)
+                    dicionario['outstring'] = formata_html(dicionario, portal)
 
     return dicionario
 
@@ -154,7 +178,7 @@ def busca_valor(portal, seletores):
                         else:
                             dicionario['desc'].append('')
 
-                        dicionario['outstring'] = formata(dicionario, portal)
+                        dicionario['outstring'] = formata_html(dicionario, portal)
 
     return dicionario
 
@@ -179,13 +203,13 @@ def busca_supremo(portal, seletores):
             dicionario['link'].append('http://portal.stf.jus.br' + link.get('href'))
             dicionario['desc'].append(desc.getText().replace('\n',''))
 
-        dicionario['outstring'] = formata(dicionario, portal)
+        dicionario['outstring'] = formata_html(dicionario, portal)
 
     return dicionario
 
 
 def control(lista):
-    outstring = f"Notícias tributárias - {date.today().strftime('%d/%m/%Y')}:" + '\n\n'
+    outstring = f"<h1>Notícias tributárias - {date.today().strftime('%d/%m/%Y')}:</h1>" + '\n\n'
 
     noticias = ''
     for item in lista:
@@ -195,8 +219,12 @@ def control(lista):
         outstring += f'Hoje não capturamos nenhuma notícia relevante.'
     else:
         outstring += noticias
+        f = open('clipping.txt', 'w')
+        f.write(outstring)
+        f.close()
 
-    print(outstring)
+    arquivo_html(outstring)
+    #print(outstring)
     # ezgmail.send('mendes.lnr@gmail.com', 'Clipping Tributário', outstring)
     # ezgmail.send('barreto.isabelaa@gmail.com', 'Clipping Tributário', outstring)
 
