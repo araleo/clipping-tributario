@@ -67,7 +67,7 @@ def formata_texto(noticias, portal):
 
 
 def busca_sacha(portal, seletores):
-    dicionario = {'titulo': [], 'desc': [], 'link': [], 'outstring': ''}
+    dicionario = {'titulo': [], 'desc': [], 'link': [], 'outstring': '', 'outhtml': ''}
 
     try:
         res = requests.get(portal['link'])
@@ -96,13 +96,14 @@ def busca_sacha(portal, seletores):
                 dicionario['desc'].append(titulo_materia)
                 dicionario['link'].append(link_materia)
 
-            dicionario['outstring'] = formata_html(dicionario, portal)
+            dicionario['outstring'] = formata_texto(dicionario, portal)
+            dicionario['outhtml'] = formata_html(dicionario, portal)
 
     return dicionario
 
 
 def busca_jota(portal, seletores):
-    dicionario = {'titulo': [], 'desc': [], 'link': [], 'outstring': ''}
+    dicionario = {'titulo': [], 'desc': [], 'link': [], 'outstring': '', 'outhtml': ''}
 
     try:
         res = requests.get(portal['link'])
@@ -129,13 +130,14 @@ def busca_jota(portal, seletores):
                     dicionario['titulo'].append(titulo.getText().strip())
                     dicionario['desc'].append(desc.getText())
                     dicionario['link'].append(link.get('href'))
-                    dicionario['outstring'] = formata_html(dicionario, portal)
+                    dicionario['outstring'] = formata_texto(dicionario, portal)
+                    dicionario['outhtml'] = formata_html(dicionario, portal)
 
     return dicionario
 
 
 def busca_valor(portal, seletores):
-    dicionario = {'titulo': [], 'desc': [], 'link': [], 'outstring': ''}
+    dicionario = {'titulo': [], 'desc': [], 'link': [], 'outstring': '', 'outhtml': ''}
 
     try:
         res = requests.get(portal['link'])
@@ -178,13 +180,14 @@ def busca_valor(portal, seletores):
                         else:
                             dicionario['desc'].append('')
 
-                        dicionario['outstring'] = formata_html(dicionario, portal)
+                        dicionario['outstring'] = formata_texto(dicionario, portal)
+                        dicionario['outhtml'] = formata_html(dicionario, portal)
 
     return dicionario
 
 
 def busca_supremo(portal, seletores):
-    dicionario = {'titulo': [], 'desc': [], 'link': [], 'outstring': ''}
+    dicionario = {'titulo': [], 'desc': [], 'link': [], 'outstring': '', 'outhtml': ''}
 
     try:
         res = requests.get(portal['link'], timeout=10)
@@ -203,29 +206,35 @@ def busca_supremo(portal, seletores):
             dicionario['link'].append('http://portal.stf.jus.br' + link.get('href'))
             dicionario['desc'].append(desc.getText().replace('\n',''))
 
-        dicionario['outstring'] = formata_html(dicionario, portal)
+        dicionario['outstring'] = formata_texto(dicionario, portal)
+        dicionario['outhtml'] = formata_html(dicionario, portal)
 
     return dicionario
 
 
 def control(lista):
-    outstring = f"<h1>Notícias tributárias - {date.today().strftime('%d/%m/%Y')}:</h1>" + '\n\n'
+    outstring = f"Notícias tributárias - {date.today().strftime('%d/%m/%Y')}:" + '\n\n'
+    outhtml = f"<h1>Notícias tributárias - {date.today().strftime('%d/%m/%Y')}:</h1>" + '\n\n'
 
-    noticias = ''
+    texto = ''
+    html = ''
+
     for item in lista:
-        noticias += item['outstring']
+        texto += item['outstring']
+        html += item['outhtml']
 
-    if noticias == '':
-        outstring += f'Hoje não capturamos nenhuma notícia relevante.'
+    if texto == '':
+        texto += f'Hoje não capturamos nenhuma notícia relevante.'
+        html += f'<h2>Hoje não capturamos nenhuma notícia relevante.</h2>'
     else:
-        outstring += noticias
-        f = open('clipping.txt', 'w')
-        f.write(outstring)
-        f.close()
+        outstring += texto
+        outhtml += html
 
-    arquivo_html(outstring)
-    #print(outstring)
+    arquivo_html(outhtml)
+
+    # print(outstring)
     # ezgmail.send('mendes.lnr@gmail.com', 'Clipping Tributário', outstring)
+    # ezgmai.send('barreto.isabelaa@gmail.com', 'Clipping Tributário', 'outstring')
 
     if lista_erros:
         outerros = '\n'.join(lista_erros)
