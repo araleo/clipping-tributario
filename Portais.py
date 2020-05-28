@@ -1,9 +1,9 @@
 import locale
 import re
+import requests
 from datetime import date, datetime, timedelta
 
 import bs4
-import requests
 
 EXCEPTS = (
     requests.exceptions.ReadTimeout,
@@ -26,6 +26,7 @@ class Portal():
             "descricao": list(),
             "link": list()
         }
+        self.busca()
 
     def formata_texto(self):
         outstring = ""
@@ -33,17 +34,9 @@ class Portal():
             outstring = "".join((self.nome))
             n = self.noticias
             for t, d, l in zip(n["titulo"], n["descricao"], n["link"]):
-                outstring = "".join((outstring,
-                f"""
-
-    {t}
-
-        {d}
-
-        {l}
-
-                """
-                ))
+                outstring = "".join(
+                    (outstring, f"\n\n\t{t}\n\n\t\t{d}\n\n\t\t{l}\n")
+                )
         return outstring
 
     def get_request(self, url):
@@ -60,7 +53,6 @@ class Portal():
         titulos = list()
         descricoes = list()
         links = list()
-
         for link in self.links:
             res = self.get_request(link)
             if res:
@@ -70,7 +62,7 @@ class Portal():
                 descricoes += soup.select(self.seletores["descricao"])
                 links += soup.select(self.seletores["link"])
 
-        return (titulos, descricoes, links)
+        return titulos, descricoes, links
 
 
 class Supremo(Portal):
@@ -81,11 +73,11 @@ class Supremo(Portal):
             self.noticias["titulo"].append(
                 titulo.getText().strip()
             )
-            self.noticias["link"].append(
-                f"http://portal.stf.jus.br{link.get('href')}"
-            )
             self.noticias["descricao"].append(
                 descricao.getText().replace("\n", "")
+            )
+            self.noticias["link"].append(
+                f"http://portal.stf.jus.br{link.get('href')}"
             )
 
 
@@ -126,7 +118,6 @@ class Jota(Portal):
 
     def busca(self):
         titulos, descricoes, links = self.listas_noticias()
-
         for titulo, link in zip(titulos, links):
             titulo = titulo.getText().strip()
             link = link.get("href")
@@ -138,7 +129,7 @@ class Jota(Portal):
                 res = self.get_request(link)
                 if res:
                     soup = bs4.BeautifulSoup(res.text, "html.parser")
-                    descricao = soup.select(self.seletores["nova_descricao"])
+                    descricao = soup.select(self.seletores["descricao"])
                     if descricao:
                         self.noticias["descricao"].append(
                             descricao[0].getText().replace("\n", "")
@@ -154,10 +145,9 @@ class Ibccrim(Portal):
         res = self.get_request(self.links[0])
         if res:
             soup = bs4.BeautifulSoup(res.text, "html.parser")
-            datas = soup.select(".badge-warning")
+            datas = soup.select(self.seletores["data"])
             datas = [x.getText() for x in datas]
             datas = [x for x in datas if self.verifica_data(x)]
-            datas.append("19 de Maio de 2020")
 
             if datas:
                 titulos, descricoes, links = self.listas_noticias()
@@ -177,3 +167,20 @@ class Ibccrim(Portal):
         locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
         dt = datetime.strptime(data, "%d de %B de %Y")
         return dt.date() == date.today() or dt.date() == ONTEM
+
+
+class Sacha(Portal):
+
+    def busca(self):
+        titulos, descricoes, links = self.listas_noticias()
+        titulo = titulos[0].getText().strip()
+        link = links[0].get("href")
+        res = requests.get(link)
+        if res:
+            soup = bs4.BeautifulSoup(res.text, "html.parser")
+            datas = soup.select(self.seletores["data"])
+            data = datas[0].getText()
+            if data == ONTEM.strftime("%d/%m/%Y"):
+                self.noticias["titulo"].append("Nova edição")
+                self.noticias["descricao"].append(titulo)
+                self.noticias["link"].append(link)

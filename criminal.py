@@ -35,11 +35,9 @@ jota = Jota(
     ],
     {
         "titulo": ".j-recent__item h2",
-        "descricao": ".j-recent__excerpt",
-        "link": ".j-recent__item h2 a",
-        "nova_descricao": ".jota-article__lead"
+        "descricao": ".jota-article__lead", # ".j-recent__excerpt"
+        "link": ".j-recent__item h2 a"
     }
-
 )
 
 ibccrim = Ibccrim(
@@ -57,14 +55,9 @@ ibccrim = Ibccrim(
 
 
 def main():
-    supremo.busca()
-    print(supremo.formata_texto())
-    valor.busca()
-    print(valor.formata_texto())
-    jota.busca()
-    print(jota.formata_texto())
-    ibccrim.busca()
-    print(ibccrim.formata_texto())
+    portais = [ibccrim, valor, supremo, jota]
+    for portal in portais:
+        print(portal.formata_texto())
 
 
 if __name__ == "__main__":
