@@ -1,8 +1,15 @@
-# clipping-tributario
+# clippings-juridicos
 
-clipping de notícias tributárias capturadas a partir de webscraping dos seguintes portais:
+clippings de notícias juridicas divididos por área. Atualmente:
 
+Tributário:
 STF
 JOTA
 VALOR
 SACHA CALMON
+
+Criminal:
+STF
+JOTA
+VALOR
+IBCCRIM
