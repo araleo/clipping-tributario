@@ -3,3 +3,4 @@ token.json
 credentials.json
 clipping-tributario.sh
 site/
+__pycache__/
