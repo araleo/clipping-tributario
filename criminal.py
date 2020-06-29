@@ -60,7 +60,7 @@ def main():
     portais = [ibccrim, valor, supremo, jota]
     for portal in portais:
         print(portal.formata_texto())
-        portal.generate_csv("./cacheCriminal.txt")
+        portal.generate_csv("cacheCriminal.txt")
 
 
 if __name__ == "__main__":

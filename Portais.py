@@ -1,6 +1,7 @@
 import locale
 import re
 import requests
+import os
 from datetime import date, datetime, timedelta
 
 import bs4
@@ -41,7 +42,8 @@ class Portal:
                 )
         return outstring
 
-    def generate_csv(self, filepath):
+    def generate_csv(self, filename):
+        filepath = os.path.join(os.environ["CLIPPING"], filename)
         with open(filepath, "a") as f:
             n = self.noticias
             for t, d, l in zip(n["titulo"], n["descricao"], n["link"]):
@@ -87,7 +89,8 @@ class Portal:
             self.generate_error_log()
 
     def generate_error_log(self):
-        with open("./errorlog.txt", "a") as f:
+        filepath = os.path.join(os.environ["CLIPPING"], "errorlog.txt")
+        with open(filepath, "a") as f:
             for erro in ERROS:
                 f.write(erro)
                 f.write("\n")
