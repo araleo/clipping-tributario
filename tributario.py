@@ -57,6 +57,7 @@ def main():
     portais = [sacha, valor, jota, supremo]
     for portal in portais:
         print(portal.formata_texto())
+        portal.generate_csv("./cacheTributario.txt")
 
 
 if __name__ == "__main__":

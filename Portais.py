@@ -15,7 +15,8 @@ EXCEPTS = (
 ERROS = list()
 ONTEM = date.today() - timedelta(days=1)
 
-class Portal():
+
+class Portal:
 
     def __init__(self, nome, links, seletores):
         self.nome = nome
@@ -31,7 +32,7 @@ class Portal():
     def formata_texto(self):
         outstring = ""
         if self.noticias["titulo"]:
-            outstring = "".join((self.nome))
+            outstring = "".join(self.nome)
             n = self.noticias
             for t, d, l in zip(n["titulo"], n["descricao"], n["link"]):
                 outstring = "".join(
@@ -39,10 +40,24 @@ class Portal():
                 )
         return outstring
 
+    def generate_csv(self, filepath):
+        with open(filepath, "a") as f:
+            n = self.noticias
+            for t, d, l in zip(n["titulo"], n["descricao"], n["link"]):
+                columns = self.define_columns((t, d, l))
+                f.write(";".join(columns))
+                f.write("\n")
+
+    def define_columns(self, args):
+        return [self.nome, ONTEM.strftime("%d/%m/%Y")] + [self.strip_sc(x) for x in args]
+
+    def strip_sc(self, text):
+        return "".join([c for c in text if c != ";"])
+
     def get_request(self, url):
         try:
             res = requests.get(url)
-            res.raise_for_status
+            res.raise_for_status()
         except EXCEPTS as err:
             ERROS.append(str(err))
             return False
@@ -151,16 +166,13 @@ class Ibccrim(Portal):
 
             if datas:
                 titulos, descricoes, links = self.listas_noticias()
-                for titulo, descricao, link, data \
-                in zip(titulos, descricoes, links, datas):
-                    self.noticias["titulo"].append(titulo.getText().strip())
+                for t, d, l, data in zip(titulos, descricoes, links, datas):
+                    self.noticias["titulo"].append(t.getText().strip())
                     self.noticias["descricao"].append(
-                        descricao.getText().replace("\n", "")
+                        d.getText().replace("\n", "")
                     )
                     self.noticias["link"].append(
-                        "".join(
-                            ("https://www.ibccrim.org.br", link.get("href"))
-                        )
+                        "".join(("https://www.ibccrim.org.br", l.get("href")))
                     )
 
     def verifica_data(self, data):

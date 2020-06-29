@@ -1,6 +1,4 @@
 erros
-token.json
-credentials.json
-clipping-tributario.sh
-site/
 __pycache__/
+cacheCriminal
+cacheTributario
