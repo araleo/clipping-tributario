@@ -28,6 +28,7 @@ class Portal:
             "link": list()
         }
         self.busca()
+        self.check_for_errors()
 
     def formata_texto(self):
         outstring = ""
@@ -44,12 +45,14 @@ class Portal:
         with open(filepath, "a") as f:
             n = self.noticias
             for t, d, l in zip(n["titulo"], n["descricao"], n["link"]):
-                columns = self.define_columns((t, d, l))
-                f.write(";".join(columns))
+                row = self.define_rows((t, d, l))
+                f.write(";".join(row))
                 f.write("\n")
 
-    def define_columns(self, args):
-        return [self.nome, ONTEM.strftime("%d/%m/%Y")] + [self.strip_sc(x) for x in args]
+    def define_rows(self, args):
+        meta = [self.nome, ONTEM.strftime("%d/%m/%Y")]
+        noticia = [self.strip_sc(x) for x in args]
+        return meta + noticia
 
     def strip_sc(self, text):
         return "".join([c for c in text if c != ";"])
@@ -78,6 +81,16 @@ class Portal:
                 links += soup.select(self.seletores["link"])
 
         return titulos, descricoes, links
+
+    def check_for_errors(self):
+        if ERROS:
+            self.generate_error_log()
+
+    def generate_error_log(self):
+        with open("./errorlog.txt", "a") as f:
+            for erro in ERROS:
+                f.write(erro)
+                f.write("\n")
 
 
 class Supremo(Portal):

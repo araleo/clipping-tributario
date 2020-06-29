@@ -1,4 +1,6 @@
-from Portais import *
+#! /usr/bin/python3
+
+from Portais import Ibccrim, Jota, Supremo, Valor, ONTEM
 
 
 supremo = Supremo(

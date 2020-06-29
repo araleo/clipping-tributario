@@ -1,4 +1,6 @@
-from Portais import *
+#! /usr/bin/python3
+
+from Portais import Jota, Sacha, Supremo, Valor, ONTEM
 
 
 sacha = Sacha(
