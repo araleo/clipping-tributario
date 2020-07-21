@@ -28,7 +28,6 @@ class Portal:
             "descricao": list(),
             "link": list()
         }
-        self.busca()
         self.check_for_errors()
 
     def formata_texto(self):
@@ -52,7 +51,7 @@ class Portal:
                 f.write("\n")
 
     def define_rows(self, args):
-        meta = [self.nome, ONTEM.strftime("%d/%m/%Y")]
+        meta = [self.nome, date.today().strftime("%d/%m/%Y")]
         noticia = [self.strip_sc(x) for x in args]
         return meta + noticia
 
@@ -98,6 +97,10 @@ class Portal:
 
 class Supremo(Portal):
 
+    def __init__(self, nome, links, seletores):
+        super().__init__(nome, links, seletores)
+        self.busca()
+
     def busca(self):
         titulos, descricoes, links = self.listas_noticias()
         for titulo, descricao, link in zip(titulos, descricoes, links):
@@ -113,6 +116,10 @@ class Supremo(Portal):
 
 
 class Valor(Portal):
+
+    def __init__(self, nome, links, seletores):
+        super().__init__(nome, links, seletores)
+        self.busca()
 
     def busca(self):
         titulos, descricoes, links = self.listas_noticias()
@@ -147,6 +154,10 @@ class Valor(Portal):
 
 class Jota(Portal):
 
+    def __init__(self, nome, links, seletores):
+        super().__init__(nome, links, seletores)
+        self.busca()
+
     def busca(self):
         titulos, descricoes, links = self.listas_noticias()
         for titulo, link in zip(titulos, links):
@@ -158,6 +169,7 @@ class Jota(Portal):
                 self.noticias["link"].append(link)
 
                 res = self.get_request(link)
+                self.noticias["descricao"].append("")
                 if res:
                     soup = bs4.BeautifulSoup(res.text, "html.parser")
                     descricao = soup.select(self.seletores["descricao"])
@@ -166,11 +178,12 @@ class Jota(Portal):
                             descricao[0].getText().replace("\n", "")
                         )
 
-                if not res or not descricao:
-                    self.noticias["descricao"].append("")
-
 
 class Ibccrim(Portal):
+
+    def __init__(self, nome, links, seletores):
+        super().__init__(nome, links, seletores)
+        self.busca()
 
     def busca(self):
         res = self.get_request(self.links[0])
@@ -198,6 +211,10 @@ class Ibccrim(Portal):
 
 
 class Sacha(Portal):
+
+    def __init__(self, nome, links, seletores):
+        super().__init__(nome, links, seletores)
+        self.busca()
 
     def busca(self):
         titulos, descricoes, links = self.listas_noticias()
